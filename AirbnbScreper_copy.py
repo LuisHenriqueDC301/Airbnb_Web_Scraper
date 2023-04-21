@@ -22,9 +22,10 @@ pat = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Python 3.11\chromedr
 navegador = webdriver.Chrome(executable_path=pat, options=options)  # instancia um objeto da classe webdriver.Chrome passando o caminho do webdriver e as opções definidas anteriormente
 
 navegador.get("http://airbnb.com")  # navega para o site do Airbnb
-sleep(2)  # espera por 2 segundos
+sleep(5)  # espera por 2 segundos
 
-Click = navegador.find_element(By.XPATH, '/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div/div/div[2]/div/div/div/header/div/div[2]/div[1]/div/button[3]/div[2]').click()  # encontra o botão "Aceitar cookies" e clica nele
+
+Click = navegador.find_element(By.XPATH, '//*[@id="site-content"]/div/div/div/header/div/div[2]/div[1]/div/button[3]/div[2]').click()
 
 sleep(1.5)  # espera por 3 segundos
 
@@ -88,6 +89,7 @@ try:
     hospedagem_avaliacao = site.find_all('span', attrs={'aria-hidden':"true"})[0].text
     hospedagem_avaliacao = float(hospedagem_avaliacao.split(" ")[0].replace(',', "."))
 
+    
     print(f"A url: {hospedagem_url}")
     print(f"A avaliação: {hospedagem_avaliacao}")
     print(f"A informação: {hospedagem_infor}")
