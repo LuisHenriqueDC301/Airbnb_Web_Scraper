@@ -25,7 +25,7 @@ navegador = webdriver.Chrome(executable_path=pat, options=options)
 navegador.get("http://airbnb.com")  
 
 # Aguarda 2 segundos para a página ser carregada completamente
-sleep(2)  
+sleep(6)  
 
 # Clica no botão "Datas" para abrir a caixa de seleção de datas
 Click = navegador.find_element(By.XPATH, '//*[@id="site-content"]/div/div/div/header/div/div[2]/div[1]/div/button[3]/div[2]').click()
@@ -88,7 +88,7 @@ for hospedagem in lista_hospedagem:
         # Navega para a página da hospedagem
         navegador.get(f"http://{hospedagem_url}")
     
-        # Aguarda 10 segundos para a página ser carregada completamente
+        # Aguarda 15 segundos para a página ser carregada completamente
         sleep(15)
 
         # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
@@ -109,6 +109,17 @@ for hospedagem in lista_hospedagem:
         # Encontra o preço da hospedagem na página
         hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[2].text
         
+        
+        if hospedagem_preco[0] == "R":
+         hospedagem_preco = hospedagem_preco[2:]
+        else:
+            hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[1].text
+            hospedagem_preco = hospedagem_preco[2:]
+        
+
+        hospedagem_avaliacao = site.find_all('span', attrs={'aria-hidden':"true"})[0].text
+        hospedagem_avaliacao = float(hospedagem_avaliacao.split(" ")[0].replace(',', "."))
+
         # Adiciona as informações ao dicionário de dados
         dic_dados["Url"].append(hospedagem_url)
         dic_dados["Informacao"].append(hospedagem_infor)
@@ -134,18 +145,12 @@ for hospedagem in lista_hospedagem:
         dic_reviews["Check-In"].append(review_check_in)
         dic_reviews["Custo Beneficio"].append(review_custo_beneficio)
 
-        if hospedagem_preco[0] == "R":
-         hospedagem_preco = hospedagem_preco[2:]
-        else:
-            hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[1].text
-            hospedagem_preco = hospedagem_preco[2:]
-        
-
-        hospedagem_avaliacao = site.find_all('span', attrs={'aria-hidden':"true"})[0].text
-        hospedagem_avaliacao = float(hospedagem_avaliacao.split(" ")[0].replace(',', "."))
         
         print(f"A url: {hospedagem_url}")
-
+        print(f"A avaliação: {hospedagem_avaliacao}")
+        print(f"A informação: {hospedagem_infor}")
+        print(f"O local é {hospedagem_local}")
+        print(f"O preço: {hospedagem_preco}")        
 
     # Caso o quarto não possuir uma avaliação, vai dar um erro de valor e a hospedagem_avalição recebera nulo
     except ValueError:
@@ -176,5 +181,5 @@ df_reviews = pd.DataFrame(dic_reviews)
 df_listing.to_csv(f'{nome_cidade}_listing.csv', index=True)
 df_reviews.to_csv(f"{nome_cidade}_reviews.csv", index=True)
 
-print(df_listing, df_reviews)
+
 input()
