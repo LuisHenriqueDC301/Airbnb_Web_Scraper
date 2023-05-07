@@ -24,8 +24,8 @@ navegador = webdriver.Chrome(executable_path=pat, options=options)
 # Navega para o site do Airbnb
 navegador.get("http://airbnb.com")  
 
-# Aguarda 2 segundos para a página ser carregada completamente
-sleep(6)  
+# Aguarda 15 segundos para a página ser carregada completamente
+sleep(20)  
 
 # Clica no botão "Datas" para abrir a caixa de seleção de datas
 Click = navegador.find_element(By.XPATH, '//*[@id="site-content"]/div/div/div/header/div/div[2]/div[1]/div/button[3]/div[2]').click()
@@ -54,13 +54,24 @@ navegador.get(nova_url)
 # Aguarda 10 segundos para a página ser carregada completamente
 sleep(10)
 
-# Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
-conteudo_pagina = navegador.page_source
-site = BeautifulSoup(conteudo_pagina, "html.parser")
+# Coletando todas as urls de todas as 15 paginas
+lista_hospedagem = []
 
-# Encontra todos os elementos div com o atributo itemprop="itemListElement"
-lista_hospedagem = site.find_all('div', attrs={'itemprop': "itemListElement"})
+for i in range(1,15):
+    # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
+    conteudo_pagina = navegador.page_source
+    site = BeautifulSoup(conteudo_pagina, "html.parser")
 
+    # Encontra todos os elementos div com o atributo itemprop="itemListElement"
+    lista_hospedagem += site.find_all('div', attrs={'itemprop': "itemListElement"})
+
+ 
+    navegador.execute_script("window.scrollBy(0, 4600);")
+    sleep(1.5)
+    #Clica no proximo
+    Click_Pro = navegador.find_element(By.CSS_SELECTOR, 'a[aria-label="Próximo"]').click()
+    sleep(5)
+    print(len(lista_hospedagem))
 # Cria um dicionário para armazenar as informações coletadas
 dic_dados = {
     "Url": [],
@@ -94,21 +105,16 @@ for hospedagem in lista_hospedagem:
         # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
         conteudo_pagina = navegador.page_source
         site = BeautifulSoup(navegador.page_source, "html.parser")
-
+        
+        sleep(2.5)
         # Encontra as informações da hospedagem na página
         hospedagem_infor =  site.find_all('h1', attrs={"elementtiming":"LCP-target"})[0].text
-        
-        # Encontra a avaliação da hospedagem na página
-        hospedagem_avaliacao = site.find_all('span', attrs={'aria-hidden':"true"})[0].text
-        hospedagem_avaliacao = float(hospedagem_avaliacao.split(" ")[0].replace(',', "."))
-
-        
+            
         # Encontra a localização da hospedagem na página
         hospedagem_local = site.find_all('div', attrs={'data-plugin-in-point-id':"TITLE_DEFAULT"})[0].find_all('button')[1].text
         
         # Encontra o preço da hospedagem na página
         hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[2].text
-        
         
         if hospedagem_preco[0] == "R":
          hospedagem_preco = hospedagem_preco[2:]
@@ -116,20 +122,26 @@ for hospedagem in lista_hospedagem:
             hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[1].text
             hospedagem_preco = hospedagem_preco[2:]
         
-
+        
+        # Encontra a avaliação da hospedagem na página
         hospedagem_avaliacao = site.find_all('span', attrs={'aria-hidden':"true"})[0].text
         hospedagem_avaliacao = float(hospedagem_avaliacao.split(" ")[0].replace(',', "."))
 
-        # Adiciona as informações ao dicionário de dados
-        dic_dados["Url"].append(hospedagem_url)
-        dic_dados["Informacao"].append(hospedagem_infor)
-        dic_dados["Avaliacao"].append(hospedagem_avaliacao)
-        dic_dados["Local"].append(hospedagem_local)
-        dic_dados["Preco"].append(hospedagem_preco)
+
+        #Comentarios
+        lista_comentarios = site.find_all("div", attrs={'role':'listitem'})
+        nomes_comentarios = []
+        comentarios = []
+
+        for comentario in lista_comentarios:
+            nomes_comentarios += [comentario.find("h3").text]
+            comentarios += [comentario.find_all('span')[-1].text]
+
 
         #Entra os dados de reviews:
         dom = etree.HTML(str(site))
 
+        sleep(1.5)
         review_limpeza = dom.xpath('//*[@id="site-content"]/div/div[1]/div[4]/div/div/div/div[2]/section/div[2]/div/div/div[1]/div/div/div[2]/span')[0].text
         review_anuncio = dom.xpath('//*[@id="site-content"]/div/div[1]/div[4]/div/div/div/div[2]/section/div[2]/div/div/div[2]/div/div/div[2]/span')[0].text
         review_comunicacao = dom.xpath('//*[@id="site-content"]/div/div[1]/div[4]/div/div/div/div[2]/section/div[2]/div/div/div[3]/div/div/div[2]/span')[0].text
@@ -145,7 +157,13 @@ for hospedagem in lista_hospedagem:
         dic_reviews["Check-In"].append(review_check_in)
         dic_reviews["Custo Beneficio"].append(review_custo_beneficio)
 
-        
+        # Adiciona as informações ao dicionário de dados
+        dic_dados["Url"].append(hospedagem_url)
+        dic_dados["Informacao"].append(hospedagem_infor)
+        dic_dados["Avaliacao"].append(hospedagem_avaliacao)
+        dic_dados["Local"].append(hospedagem_local)
+        dic_dados["Preco"].append(hospedagem_preco)
+
         print(f"A url: {hospedagem_url}")
         print(f"A avaliação: {hospedagem_avaliacao}")
         print(f"A informação: {hospedagem_infor}")
@@ -172,6 +190,9 @@ for hospedagem in lista_hospedagem:
 
      continue
 
+    except:
+       sleep(1.5)
+       continue
 
 #Usa a blibioteca Pandas para salvar os dados com um dataframe        
 df_listing = pd.DataFrame(dic_dados)
