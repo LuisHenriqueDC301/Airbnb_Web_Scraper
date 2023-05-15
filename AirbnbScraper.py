@@ -90,8 +90,17 @@ dic_reviews = {
     "Custo Beneficio" : []
 }
 
+dic_coment = {
+    "Id_Quarto" : [],
+    "Nome" : [],
+    "Comentario" : []
+}
+
+
+
+
 # Loop pelos elementos da lista de hospedagem
-for hospedagem in lista_hospedagem:
+for index,hospedagem in enumerate(lista_hospedagem):
     try:
         # Obtém a URL da hospedagem
         hospedagem_url = hospedagem.find('meta', attrs={'itemprop': "url"})['content']
@@ -164,43 +173,28 @@ for hospedagem in lista_hospedagem:
         dic_dados["Local"].append(hospedagem_local)
         dic_dados["Preco"].append(hospedagem_preco)
 
-        print(f"A url: {hospedagem_url}")
-        print(f"A avaliação: {hospedagem_avaliacao}")
-        print(f"A informação: {hospedagem_infor}")
-        print(f"O local é {hospedagem_local}")
-        print(f"O preço: {hospedagem_preco}")        
+        for i in range(len(nomes_comentarios)):
+            dic_coment["Id_Quarto"].append(index)
+            dic_coment["Nome"].append(nomes_comentarios[i])
+            dic_coment["Comentario"].append(comentarios[i])
 
-    # Caso o quarto não possuir uma avaliação, vai dar um erro de valor e a hospedagem_avalição recebera nulo
-    except ValueError:
-     hospedagem_avaliacao = None 
-     # Adiciona as informações ao dicionário de dados
-     dic_dados["Url"].append(hospedagem_url)
-     dic_dados["Informacao"].append(hospedagem_infor)
-     dic_dados["Avaliacao"].append(hospedagem_avaliacao)
-     dic_dados["Local"].append(hospedagem_local)
-     dic_dados["Preco"].append(hospedagem_preco)
-        
-     # Adiciona as informações ao dicionário de reviews
-     dic_reviews['Limpeza:'].append(review_limpeza)
-     dic_reviews['Exatidao do Anuncio'].append(review_anuncio)
-     dic_reviews["Comunicacao"].append(review_comunicacao)
-     dic_reviews["Localizacao"].append(review_localizacao)
-     dic_reviews["Check-In"].append(review_check_in)
-     dic_reviews["Custo Beneficio"].append(review_custo_beneficio)
+        print(f"Falta cerca de {len(lista_hospedagem) - index}")       
 
-     continue
-
+    
     except:
+       print("Erro")
        sleep(1.5)
        continue
 
 #Usa a blibioteca Pandas para salvar os dados com um dataframe        
 df_listing = pd.DataFrame(dic_dados)
 df_reviews = pd.DataFrame(dic_reviews)
+df_coment = pd.DataFrame(dic_coment)
 
 #Salva o dataframe em um arquivo csv
 df_listing.to_csv(f'{nome_cidade}_listing.csv', index=True)
 df_reviews.to_csv(f"{nome_cidade}_reviews.csv", index=True)
+df_coment.to_csv(f"{nome_cidade}_reviews.csv", index=True)
 
 
 input()
