@@ -1,5 +1,6 @@
 # Importando as bibliotecas necessárias
 import pandas as pd
+import re
 from lxml import etree
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -93,7 +94,9 @@ dic_reviews = {
 dic_coment = {
     "Id_Quarto" : [],
     "Nome" : [],
-    "Comentario" : []
+    "Comentario" : [],
+    "Data" : [],
+    "Id_Usuario": []
 }
 
 
@@ -108,14 +111,19 @@ for index,hospedagem in enumerate(lista_hospedagem):
         # Navega para a página da hospedagem
         navegador.get(f"http://{hospedagem_url}")
     
-        # Aguarda 15 segundos para a página ser carregada completamente
-        sleep(15)
+        # Aguarda 8 segundos para a página ser carregada completamente
+        sleep(8)
+
+        #Rolar a pagina para baixo para garatir que todas as informações sejam carregadas:
+        navegador.execute_script("window.scrollBy(0, 3600);")
+
+        sleep(3)
 
         # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
         conteudo_pagina = navegador.page_source
         site = BeautifulSoup(navegador.page_source, "html.parser")
         
-        sleep(2.5)
+        
         # Encontra as informações da hospedagem na página
         hospedagem_infor =  site.find_all('h1', attrs={"elementtiming":"LCP-target"})[0].text
             
@@ -139,6 +147,7 @@ for index,hospedagem in enumerate(lista_hospedagem):
 
         #Comentarios
         lista_comentarios = site.find_all("div", attrs={'role':'listitem'})
+        data_coment = site.find_all("li", attrs={"theme":"[object Object]"})
         nomes_comentarios = []
         comentarios = []
 
@@ -146,7 +155,20 @@ for index,hospedagem in enumerate(lista_hospedagem):
             nomes_comentarios += [comentario.find("h3").text]
             comentarios += [comentario.find_all('span')[-1].text]
 
+        # Encontrar todas as tags 'a' que contêm '/users/show/' no atributo 'href'
+        id_user = site.find_all('a', href=lambda href: href and '/users/show/' in href)[-6:]
 
+
+        # Iterar sobre as tags 'a' encontradas e imprimir o texto e o valor do atributo 'href'
+        list_urlUser = []
+        id_usuarios = []
+        for id in id_user:
+            list_urlUser.append(id['href'])
+        for string in list_urlUser:
+            numeros_string = re.findall(r'\d+', string)
+            id_usuarios.extend(numeros_string)
+        
+            
         #Entra os dados de reviews:
         dom = etree.HTML(str(site))
 
@@ -177,6 +199,8 @@ for index,hospedagem in enumerate(lista_hospedagem):
             dic_coment["Id_Quarto"].append(index)
             dic_coment["Nome"].append(nomes_comentarios[i])
             dic_coment["Comentario"].append(comentarios[i])
+            dic_coment["Data"].append(data_coment[i].text)
+            dic_coment["Id_Usuario"].append(id_usuarios[i])
 
         print(f"Falta cerca de {len(lista_hospedagem) - index}")       
 
@@ -194,7 +218,7 @@ df_coment = pd.DataFrame(dic_coment)
 #Salva o dataframe em um arquivo csv
 df_listing.to_csv(f'{nome_cidade}_listing.csv', index=True)
 df_reviews.to_csv(f"{nome_cidade}_reviews.csv", index=True)
-df_coment.to_csv(f"{nome_cidade}_reviews.csv", index=True)
+df_coment.to_csv(f"{nome_cidade}_comentarios.csv", index=True)
 
 
 input()
