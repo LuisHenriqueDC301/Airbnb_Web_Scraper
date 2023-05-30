@@ -58,7 +58,7 @@ sleep(10)
 # Coletando todas as urls de todas as 15 paginas
 lista_hospedagem = []
 
-for i in range(1,10):
+for i in range(1,15):
     # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
     conteudo_pagina = navegador.page_source
     site = BeautifulSoup(conteudo_pagina, "html.parser")
@@ -123,13 +123,23 @@ for index,hospedagem in enumerate(lista_hospedagem):
         # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
         conteudo_pagina = navegador.page_source
         site = BeautifulSoup(navegador.page_source, "html.parser")
-        
         dom = etree.HTML(str(site))
+        
         # Encontra as informações da hospedagem na página
         hospedagem_infor =  site.find_all('h1', attrs={"elementtiming":"LCP-target"})[0].text
             
         # Encontra a localização da hospedagem na página
-        hospedagem_local = hospedagem_local = dom.xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[1]/div[1]/div/div/div/div/section/div[2]/div[1]/span[3]/button/span')[0].text
+        hospedagem_local = hospedagem_local = dom.xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[5]/div/div/div/div[2]/section/div[2]')[0].text
+        print(f"Hospedagem local antes: {hospedagem_local}")
+        if hospedagem_local == None:
+            navegador.execute_script("window.scrollBy(200,0);")
+            sleep(0.5)
+            conteudo_pagina = navegador.page_source
+            site = BeautifulSoup(navegador.page_source, "html.parser")
+            dom = etree.HTML(str(site))
+            hospedagem_local = hospedagem_local = dom.xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[5]/div/div/div/div[2]/section/div[2]')[0].text
+            print(f"Hospedagem local depois: {hospedagem_local}")
+
         
         # Encontra o preço da hospedagem na página
         hospedagem_preco = site.find('div',attrs={'data-testid':"book-it-default"}).find_all("span")[2].text
