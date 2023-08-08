@@ -26,10 +26,10 @@ navegador = webdriver.Chrome(executable_path=pat, options=options)
 navegador.get("http://airbnb.com")  
 
 # Aguarda 15 segundos para a página ser carregada completamente
-sleep(20)  
+sleep(10)  
 
-# Clica no botão "Datas" para abrir a caixa de seleção de datas
-Click = navegador.find_element(By.XPATH, '//*[@id="site-content"]/div/div/div/header/div/div[2]/div[1]/div/button[3]/div[2]').click()
+
+Click = navegador.find_element(By.XPATH, '/html/body/div[5]/div/div/div[1]/div/div[3]/div[1]/div/div/div/header/div/div[2]/div[1]/div/button[1]').click()
 
 # Aguarda 1,5 segundos para a página ser carregada completamente
 sleep(1.5) 
@@ -58,7 +58,9 @@ sleep(10)
 # Coletando todas as urls de todas as 15 paginas
 lista_hospedagem = []
 
-for i in range(1,15):
+#Vai ter que olhar o numero de paginas e definir na variavel a baixo (O padão é 15)
+numeros_paginas = 15
+for i in range(1,numeros_paginas):
     # Obtém o conteúdo da página atual do navegador e converte para um objeto BeautifulSoup
     conteudo_pagina = navegador.page_source
     site = BeautifulSoup(conteudo_pagina, "html.parser")
@@ -130,7 +132,6 @@ for index,hospedagem in enumerate(lista_hospedagem):
             
         # Encontra a localização da hospedagem na página
         hospedagem_local = hospedagem_local = dom.xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[5]/div/div/div/div[2]/section/div[2]')[0].text
-        print(f"Hospedagem local antes: {hospedagem_local}")
         if hospedagem_local == None:
             navegador.execute_script("window.scrollBy(200,0);")
             sleep(0.5)
@@ -138,7 +139,7 @@ for index,hospedagem in enumerate(lista_hospedagem):
             site = BeautifulSoup(navegador.page_source, "html.parser")
             dom = etree.HTML(str(site))
             hospedagem_local = hospedagem_local = dom.xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[5]/div/div/div/div[2]/section/div[2]')[0].text
-            print(f"Hospedagem local depois: {hospedagem_local}")
+            
 
         
         # Encontra o preço da hospedagem na página
@@ -225,7 +226,7 @@ for index,hospedagem in enumerate(lista_hospedagem):
             dic_coment["Data"].append(data_coment[i].text)
             dic_coment["Id_Usuario"].append(id_usuarios[i])
 
-        print(f"Falta cerca de {len(lista_hospedagem) - index}")       
+        print(f"Falta {len(lista_hospedagem) - index}")       
 
     
     except:
